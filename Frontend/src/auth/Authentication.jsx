@@ -1,9 +1,8 @@
-import React from 'react'
+import 'react'
 import { SignIn, SignUp, SignedIn, SignedOut } from '@clerk/clerk-react'
 
-export default function Authentication() {
-  return (
-    <div className='auth-container'>
+export function Authentication() {
+  return <div className='auth-container'>
       <SignedOut>
            <SignIn routing='path' path='/sign-in'/>
            <SignUp routing='path' path='/sign-up'/>
@@ -14,5 +13,4 @@ export default function Authentication() {
            </div>
       </SignedIn>
     </div>
-  )
 }
