@@ -1,3 +1,4 @@
 Backend/venv
 Frontend/node_modules
 Frontend/.env
+Backend/src/.env
