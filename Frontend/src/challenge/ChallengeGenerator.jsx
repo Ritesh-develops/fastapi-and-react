@@ -1,6 +1,7 @@
 import "react"
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {MCQChallenge} from "./MCQChallenge.jsx";
+import { useApi } from "../utils/api.js";
 
 export function ChallengeGenerator() {
     const [challenge, setChallenge] = useState(null)
@@ -8,11 +9,43 @@ export function ChallengeGenerator() {
     const [error, setError] = useState(null)
     const [difficulty, setDifficulty] = useState("easy")
     const [quota, setQuota] = useState(null)
-  // const fetchQuota = async ()=>{}
+    const{makeRequest} = useApi()
 
-  const generateChallenge = async ()=>{}
+    useEffect(()=>{
+      fetchQuota()
+    },[])
+  const fetchQuota = async ()=>{
+    try{
+      const data = await makeRequest("quota")
+      setQuota(data)
+    }catch(err){
+      console.log(err)
+    }
+  }
 
-  // const getNextResetTime = ()=>{}
+  const generateChallenge = async ()=>{
+    setIsLoading(true)
+    setError(null)
+    try{
+      const data = await makeRequest("generate-challenge", {
+        method: "POST",
+        body: JSON.stringify({difficulty})
+      })
+      setChallenge(data)
+      fetchQuota()
+    }catch(err){
+      setError(err.message || "failed to generate challenge.")
+    }finally{
+      setIsLoading(false)
+    }
+  }
+
+  const getNextResetTime = ()=>{
+    if(!quota?.last_reset_date) return null
+    const resetDate = new Date(quota.last_reset_date)
+    resetDate.setHours(resetDate.getHours()+24)
+    return resetDate
+  }
 
   return <div className="challenge-container">
       <h2>Coding Challenge Generator</h2> 
@@ -20,7 +53,7 @@ export function ChallengeGenerator() {
       <div className="quota-display">
         <p>Challenges remaining today: {quota?.quota_remaining || 0}</p>
         {quota?.quota_remaining === 0 && (
-          <p>Next Reset: {0}</p>
+          <p>Next Reset: {getNextResetTime()?.toLocaleString()}</p>
         )}
       </div>
       <div className="difficulty-selector">
@@ -31,7 +64,7 @@ export function ChallengeGenerator() {
           <option value="hard">Hard</option>
         </select>
       </div>
-      <button onClick={generateChallenge} disabled={isLoading || quota?.quota_remaining===0} className="generate-button">{isLoading? "Generating....." : "Generate Challenge"}</button>
+      <button onClick={generateChallenge} disabled={false} className="generate-button">{isLoading? "Generating....." : "Generate Challenge"}</button>
        {error && <div className="error-message">
             <p>{error}</p>
         </div>}
